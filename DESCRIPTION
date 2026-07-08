@@ -1,7 +1,7 @@
 Package: bayesglogit
 Title: Bayesian Grouped Logistic Regression with Shrinkage Priors
 Version: 0.1.0
-Authors@R: person("Tathastu", "Ghosh", email = "tathastu.ghosh@example.com",
+Authors@R: person("Tathastu", "Ghosh", email = "ghoshtathastu9@gmail.com",
                   role = c("aut", "cre"))
 Description: Implements three grouped shrinkage priors for full Bayesian 
     logistic regression using Polya-Gamma data augmentation. The methods 
