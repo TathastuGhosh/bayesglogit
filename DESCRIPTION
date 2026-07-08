@@ -3,9 +3,12 @@ Title: Bayesian Grouped Logistic Regression with Shrinkage Priors
 Version: 0.1.0
 Authors@R: person("Tathastu", "Ghosh", email = "tathastu.ghosh@example.com",
                   role = c("aut", "cre"))
-Description: Implements three grouped shrinkage priors (BGHS, GRASP, and GIGG) 
-    for logistic regression using Polya-Gamma data augmentation. Provides 
-    functions for Gibbs sampling and posterior inference.
+Description: Implements three grouped shrinkage priors for full Bayesian 
+    logistic regression using Polya-Gamma data augmentation. The methods 
+    include the Bayesian Grouped Horseshoe (BGHS), Grouped Regression with 
+    Adaptive Shrinkage Priors (GRASP), and Group Inverse-Gamma Gamma (GIGG). 
+    Full posterior inference is performed via Gibbs sampling with 
+    Metropolis-Hastings within Gibbs for hyperparameters.
 Depends: R (>= 3.5.0)
 Imports:
     MASS,

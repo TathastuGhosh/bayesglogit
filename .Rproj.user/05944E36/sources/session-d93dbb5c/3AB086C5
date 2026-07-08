@@ -3,7 +3,7 @@
     "path": "C:/Users/ghosh/Desktop/Project_MSc/bayesglogit/DESCRIPTION",
     "project_path": "DESCRIPTION",
     "type": "dcf",
-    "hash": "2027865063",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1783507388422.0,
@@ -12,15 +12,15 @@
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "20,13",
-        "scrollLine": "0"
+        "cursorPosition": "19,10",
+        "scrollLine": "6"
     },
     "folds": "",
-    "lastKnownWriteTime": 1783511608,
+    "lastKnownWriteTime": 1783513944,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1783511608089,
+    "last_content_update": 1783513944200,
     "read_only": false,
     "read_only_alternatives": []
 }
