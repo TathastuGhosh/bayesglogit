@@ -1,0 +1,155 @@
+#' GIGG for Logistic Regression
+#'
+#' Fits a Bayesian grouped logistic regression model using the GIGG prior.
+#'
+#' @param formula A model formula (e.g., \code{y ~ x1 + x2}).
+#' @param data A data frame containing the variables.
+#' @param groups A list of variable names or a vector of group IDs.
+#' @param n_iter Total number of MCMC iterations.
+#' @param burnin Number of burn-in iterations.
+#' @param thin Thinning interval (default = 1).
+#' @param init Starting values (optional).
+#' @param verbose Print progress messages (default = TRUE).
+#' @param print_every Print progress every N iterations (default = 100).
+#' @param sigma_prop_a Proposal SD for a_g^2 (log scale).
+#' @param sigma_prop_b Proposal SD for b_g^2 (log scale).
+#' @param ... Additional arguments passed to \code{gigg_gibbs}.
+#'
+#' @return An object of class \code{gigg} containing:
+#'   \item{posterior}{Full posterior samples}
+#'   \item{beta}{Posterior samples of regression coefficients}
+#'   \item{coefficients}{Summary table: mean, SD, credible intervals}
+#'   \item{formula}{Model formula}
+#'   \item{data}{Original data}
+#'   \item{groups}{Group structure}
+#'   \item{group_sizes}{Sizes of each group}
+#'   \item{n_iter}{Total iterations}
+#'   \item{burnin}{Burn-in iterations}
+#'   \item{thin}{Thinning interval}
+#'   \item{method}{"GIGG"}
+#'   \item{acceptance}{MH acceptance rates}
+#'   \item{elapsed_time}{Runtime in seconds}
+#'
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' fit <- gigg(y ~ ., data = my_data, groups = my_groups)
+#' summary(fit)
+#' }
+gigg <- function(formula, data, groups, n_iter = 20000, burnin = 10000,
+                 thin = 1, init = NULL, verbose = TRUE, print_every = 100,
+                 sigma_prop_a = 0.2, sigma_prop_b = 0.2, ...) {
+
+  # 1. Extract response and design matrix
+  mf <- model.frame(formula, data)
+  y <- model.response(mf)
+  X <- model.matrix(formula, data)[, -1, drop = FALSE]
+
+  n <- nrow(X)
+  p <- ncol(X)
+
+  # 2. Process groups
+  if (is.list(groups)) {
+    G <- length(groups)
+    group_sizes <- sapply(groups, length)
+    var_names <- colnames(X)
+    all_names <- unlist(groups)
+    if (!all(all_names %in% var_names)) {
+      stop("Some variable names in groups not found in data")
+    }
+    X <- X[, all_names, drop = FALSE]
+  } else if (is.numeric(groups) && length(groups) == p) {
+    G <- length(unique(groups))
+    group_sizes <- as.vector(table(groups))
+    ord <- order(groups)
+    X <- X[, ord, drop = FALSE]
+  } else {
+    stop("groups must be a list of variable names or a vector of group IDs")
+  }
+
+  # 3. Prepare data for Gibbs
+  data_gibbs <- cbind(y, X)
+  colnames(data_gibbs)[1] <- "y"
+
+  # 4. Create initial values if not provided
+  if (is.null(init)) {
+    init <- create_gigg_init(n, p, G, group_sizes)
+  }
+
+  # 5. Run Gibbs sampler
+  if (verbose) {
+    cat("\nRunning GIGG Gibbs sampler...\n")
+  }
+
+  start_time <- Sys.time()
+
+  posterior <- gigg_gibbs(
+    data = data_gibbs,
+    nsamples = n_iter,
+    burnin = burnin,
+    init = init,
+    group_sizes = group_sizes,
+    print_every = print_every,
+    sigma_prop_a = sigma_prop_a,
+    sigma_prop_b = sigma_prop_b,
+    ...
+  )
+
+  elapsed_time <- as.numeric(difftime(Sys.time(), start_time, units = "secs"))
+
+  # 6. Extract beta columns
+  beta_cols <- grep("^beta_", colnames(posterior))
+  beta_names <- colnames(X)
+  if (length(beta_cols) == length(beta_names)) {
+    colnames(posterior)[beta_cols] <- beta_names
+  }
+
+  # 7. Compute summaries
+  beta_summary <- t(apply(posterior[, beta_cols, drop = FALSE], 2,
+                          function(x) c(mean = mean(x), sd = sd(x),
+                                        quantile(x, c(0.025, 0.5, 0.975)))))
+
+  colnames(beta_summary) <- c("Mean", "SD", "2.5%", "50%", "97.5%")
+
+  # 8. Build output
+  out <- list(
+    posterior = posterior,
+    beta = posterior[, beta_cols, drop = FALSE],
+    coefficients = beta_summary,
+    formula = formula,
+    data = data,
+    groups = groups,
+    group_sizes = group_sizes,
+    n_iter = n_iter,
+    burnin = burnin,
+    thin = thin,
+    method = "GIGG",
+    acceptance = list(
+      a_g = sigma_prop_a,
+      b_g = sigma_prop_b
+    ),
+    elapsed_time = elapsed_time
+  )
+
+  class(out) <- "gigg"
+  return(out)
+}
+
+#' Create Initial Values for GIGG
+#'
+#' Internal function to create initial values for the GIGG sampler.
+#'
+#' @noRd
+create_gigg_init <- function(n, p, G, group_sizes) {
+  c(rep(0.5, n),            # w
+    rep(0, p),              # beta
+    rep(1, p),              # lambda_sq
+    rep(1, G),              # delta_sq
+    1,                      # tau_sq
+    1,                      # v
+    rep(1, G),              # a_sq
+    rep(1, G),              # d
+    rep(1, G),              # b_sq
+    rep(1, G))              # e
+}
