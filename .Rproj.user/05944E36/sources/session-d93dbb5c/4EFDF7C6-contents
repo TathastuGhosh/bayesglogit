@@ -11,7 +11,7 @@
 `bayesglogit` implements **full Bayesian grouped logistic regression** with three shrinkage priors using **Pólya-Gamma data augmentation**:
 
 - **BGHS** — Bayesian Grouped Horseshoe
-- **GRASP** — Grouped Regression with Adaptive Shrinkage Priors\
+- **GRASP** — Grouped Regression with Adaptive Shrinkage Priors
 - **GIGG** — Group Inverse-Gamma Gamma
 
 ## Installation
