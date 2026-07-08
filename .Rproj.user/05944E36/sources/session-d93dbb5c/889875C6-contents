@@ -1,3 +1,8 @@
 devtools::check()
 
 git add .
+
+
+remotes::install_github("TathastuGhosh/bayesglogit")
+library(bayesglogit)
+?bghs
